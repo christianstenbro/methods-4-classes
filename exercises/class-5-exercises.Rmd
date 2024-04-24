@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(rethinking)
-library(daggity)
+library(dagitty)
 ```
 
 Welcome back to your favorite course of all time. This week we start getting into causal inference - arguably the most important part of all of your Methods courses. Why? Because we finally start practicing *doing science*, not just statistics.
@@ -33,6 +33,10 @@ Conceptual question. Let's say you have bought a farm in Vestjylland. The previo
 
 You are far from a good farmer. You only know how to code. In the morning, the televised weather forecast forecasts substantial heat wave for the next 3 days. You don't know what to do, should you water your crops extra, given this new information? You don't trust your common sense, so you throw in all of the data (soil moisture and air temperature) into your machine learning model. The model predicts that soil moisture for the forecasted values of air temperature will be normal. So you decide not to give the soil extra water. Was that a good decision? Why?
 
+*Answer:*
+
+It is not necessarily a good decision, as the model lacks an important variable: Watering. The soil moisture might be a super stable variable *across* air temperatures because of preventive watering. So without this variable, we will have a hard time making decisions.
+
 #### 5M1.
 
 Invent your own example of a spurious correlation. An outcome variable should be correlated with both predictor variables. But when both predictors are entered in the same model, the correlation between the outcome and one of the predictors should mostly vanish (or at least be greatly reduced). 
@@ -40,10 +44,9 @@ Invent your own example of a spurious correlation. An outcome variable should be
 See if you can come up with a cogsci-inspired phenomenon. Anxiety? Bliss? Make a DAG and use the *daggity* package to illustrate it. 
 
 ```{r}
-
-# ilustrate your dag
-# What are the conditional independencies of your DAG?
-
+dag5M.1 <- dagitty( "dag{ SM -> MH; MH <- FI -> SM; FI -> SM }" )
+coordinates(dag5M.1) <- list( x=c(SM=0, FI=2, MH=1) , y=c(SM=1,FI=1,MH=0) )
+drawdag( dag5M.1 )
 ```
 
 Now see if you can play god and generate the data. This will require you to think even deeper about your variables - what is the scale of each variable and how they interact. Formulate your assumptions in natural language and perhaphs ask ChatGPT to help you with the data simulation process to avoid spending a lot of time looking for the right code. Just make sure that the output matches your desired generative structure. :))

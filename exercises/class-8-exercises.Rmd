@@ -18,15 +18,95 @@ library(rethinking)
 
 Do all the easy exercises from Chapter 9: **9E1** through **9E6**.
 
+9E3:
+
+The HMC does not work very well when the priors are weak and the data ditto (uninformative). The way I think about this is, that the 'particles' in the simulation will cover a very large flat area before turning around. They will not learn the shape of the posterior very effectively (but also, the posterior will have a very uninformative shape anyway, regardless of algorithm efficiency). 
+
+9E4: 
+
+The effective number of samples *n_eff* is the number of samples with optimal (that is with no or even anti) auto-correlation that would be necessary to obtain similar information as the actual number of samples did. Optimal samples gain maximum information for each step in the chain.
+
+9E5:
+
+1 from above.The r-hat is a diagnostic that can be used to assess how well the chains mixed. If the r-hat is high, this means that the chains did not mean very well. 
+
 ### Medium
 
 #### 9M1
 
 ```{r}
-
-# Your solution here
-
+# loading data
+library(rethinking)
+data(rugged)
+d <- rugged
+d$log_gdp <- log(d$rgdppc_2000)
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd$log_gdp_std <- dd$log_gdp / mean(dd$log_gdp)
+dd$rugged_std <- dd$rugged / max(dd$rugged)
+dd$cid <- ifelse( dd$cont_africa==1 , 1 , 2 )
 ```
+
+```{r}
+# transforming variables
+dat_slim <- list(
+    log_gdp_std = dd$log_gdp_std,
+    rugged_std = dd$rugged_std,
+    cid = as.integer( dd$cid )
+)
+str(dat_slim)
+```
+
+```{r}
+# estimating the posterior
+m9.1 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dexp( 1 )
+    ) , data=dat_slim )
+
+precis(m9.1)
+```
+
+```{r}
+# changing the prior on sigma to a uniform distribution
+m9.2 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dunif( 0 , 10 )
+    ) , data=dat_slim )
+```
+
+```{r}
+# changing the prior on sigma to an exponential distribution
+m9.3 <- quap(
+    alist(
+        log_gdp_std ~ dnorm( mu , sigma ) ,
+        mu <- a[cid] + b[cid]*( rugged_std - 0.215 ) ,
+        a[cid] ~ dnorm( 1 , 0.1 ) ,
+        b[cid] ~ dnorm( 0 , 0.3 ) ,
+        sigma ~ dexp( 1 )
+    ) , data=dat_slim )
+```
+
+```{r}
+dexp( 1 )
+
+dexp(1)
+```
+
+
+```{r}
+precis( m9.2 )
+precis( m9.3 )
+```
+
+The changed priors doesn't change anything.
 
 #### 9M2
 
